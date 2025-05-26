@@ -2,6 +2,8 @@
 
 A spiking neural network model for encoding letter sequences using NEST 3.8, trained on the TinyShakespeare dataset. The model uses STDP to learn letter transitions, with 100% synaptic connectivity and optimized memory usage.
 
+Initial experiments. For now it does little more than learn letter sequences, using STDP, from a dataset which is commonly used for minimal viable language model development, as a test-bed to tune compute resourse requirements.
+
 ## Features
 - Processes up to 900,000 letter tokens.
 - 5 ms spike spacing, 1–2 spikes per letter.
