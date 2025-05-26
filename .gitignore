@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+*.dist-info/
+*.whl
+*.log
+*.out
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.bak
+*.tmp
+
+# Conda
+miniforge3/
+*.conda
+*.conda-lock
+*.env
+
+# NEST
+nest/
+*.gdf
+*.dat
+*.sli
+*.log
+
+# Output files
+logs/
+letter_raster_*.png
+output_*.log
+weights_*.pkl
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
