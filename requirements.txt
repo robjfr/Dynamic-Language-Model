@@ -1,0 +1,4 @@
+nest-simulator==3.8
+numpy
+matplotlib
+datasets
