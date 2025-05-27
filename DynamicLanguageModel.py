@@ -32,8 +32,7 @@ print(f"Number of neurons: {num_neurons}")
 # Load TinyShakespeare dataset
 dataset = load_dataset("tiny_shakespeare", split="train", trust_remote_code=True)
 text_data = "".join([sample["text"] for sample in dataset]).lower()
-# Extract valid letters (a-z)
-letters = [ch for ch in text_data if ch in letter_to_neuron][:900000]  # Test with 10,000
+letters = [ch for ch in text_data if ch in letter_to_neuron][:900000]
 print(f"Total letters processed: {len(letters)}")
 print(f"Unique letters: {len(set(letters))}")
 logger.info(f"First 20 letters: {letters[:20]}")
@@ -46,7 +45,7 @@ nest.SetKernelStatus({
     "max_delay": 10.0,
     "overwrite_files": True,
     "print_time": False,
-    "rng_seed": int(tm.time() * 1000) % (2**32)  # Correct RNG seed
+    "rng_seed": int(tm.time() * 1000) % (2**32)
 })
 
 # Create neurons
@@ -75,16 +74,15 @@ for i in range(num_neurons):
     )
 print("Created generator connections")
 
-# Setup STDP synapses (sparse, 0.5%, mixed excitatory/inhibitory)
+# Setup STDP synapses (100% connectivity)
 nest.SetDefaults("stdp_synapse", {
     "Wmax": 100.0,
-    "lambda": 0.002,  # Increased
+    "lambda": 0.002,
     "tau_plus": 20.0
 })
 for i in range(num_neurons):
     for j in range(num_neurons):
-        #if i != j and np.random.random() < 0.005:  # 0.5% connectivity
-        if i != j and np.random.random() < 100:  # 100% connectivity
+        if i != j:
             nest.Connect(
                 neurons[i:i+1],
                 neurons[j:j+1],
@@ -95,15 +93,15 @@ for i in range(num_neurons):
                     "delay": 1.0
                 }
             )
-print("Created sparse STDP connections")
+print("Created STDP connections")
 logger.info(f"STDP connections: {len(nest.GetConnections(neurons, neurons))}")
 
-# Assign spike times with 5 ms spacing, starting at 1.5 ms
+# Assign spike times (5 ms spacing, 1.5 ms offset)
 spike_times = defaultdict(list)
 resolution = nest.resolution
 for i, letter in enumerate(letters):
     neuron_id = letter_to_neuron[letter]
-    t_rounded = round((i * 5.0 + 1.5) / resolution) * resolution  # 5 ms spacing, adjusted offset
+    t_rounded = round((i * 5.0 + 1.5) / resolution) * resolution
     spike_times[neuron_id].append(t_rounded)
     if i < 10:
         print(f"Letter {i}: {letter}, Time {t_rounded:.1f} ms, Neuron {neuron_id}")
@@ -157,7 +155,6 @@ logger.info(f"First 20 letter labels: {letter_time_labels[:20]}")
 if len(events["times"]) > 0:
     fig, (ax_raster, ax_timeline) = plt.subplots(2, 1, figsize=(15, 7),
                                                 gridspec_kw={'height_ratios': [8, 1]}, sharex=True)
-    # Raster plot
     spike_times_by_neuron = [[] for _ in range(num_neurons)]
     for t, n in all_spikes:
         spike_times_by_neuron[n].append(t)
@@ -167,7 +164,6 @@ if len(events["times"]) > 0:
     ax_raster.set_yticklabels(list(neuron_to_letter.values()))
     ax_raster.set_title("Spike Raster Encoding of TinyShakespeare Letters (5 ms spacing)")
     ax_raster.grid(True, linestyle='--', alpha=0.3)
-    # Timeline with letters
     for letter, time in letter_time_labels:
         ax_timeline.text(time, 0.5, letter, ha='center', va='center', fontsize=8)
     ax_timeline.set_ylim(0, 1)
@@ -175,7 +171,6 @@ if len(events["times"]) > 0:
     ax_timeline.set_xlabel("Time (ms)")
     ax_timeline.set_xlim(0, 800)
     ax_timeline.set_title("Letter Timeline")
-    # Save plot
     plot_filename = f"letter_raster_{int(tm.time())}.png"
     try:
         plt.savefig(plot_filename)
@@ -189,11 +184,18 @@ else:
 all_spikes.clear()
 letter_time_labels.clear()
 
-# Process STDP weights
+# Save weights
 connections = nest.GetConnections(neurons, neurons, synapse_model="stdp_synapse")
-logger.info(f"Number of STDP connections: {len(connections)}")
 weights = nest.GetStatus(connections, "weight")
 source_target_pairs = [(c.source, c.target) for c in connections]
+weight_dict = {(src, tgt): w for (src, tgt), w in zip(source_target_pairs, weights)}
+with open("weights_final.pkl", "wb") as f:
+    pickle.dump(weight_dict, f)
+print(f"Saved weights to weights_final.pkl")
+logger.info(f"Saved weights: {list(weight_dict.items())[:50]}")
+
+# Process STDP weights
+logger.info(f"Number of STDP connections: {len(connections)}")
 weight_changes = []
 for (source, target), weight in zip(source_target_pairs, weights):
     if abs(weight) > 1.1:
