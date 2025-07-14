@@ -24,11 +24,20 @@ conda install nest-simulator=3.8 numpy matplotlib datasets
 Usage
 
 bash
-python letterSTDPNetwork.py > output.log
+python dynamicLanguageModel.py > output.log
 
 Output
 Logs: logs/letter_detections_*.txt (spikes, weights).
 Plots: letter_raster_*.png (spike raster and timeline).
+
+14-7-25 Added polychronySequenceCode1.py
+
+Adds experiments with word and sequence encoding, to generate skip vector/embedding equivalent groupings in test sequences.
+
+Usage:
+
+bash
+python polychronySequenceCode1.py
 
 License
 MIT License
